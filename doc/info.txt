@@ -1,0 +1,5 @@
+This is CamCanvas API v 0.1 
+--
+We need your help. Please help with a bit of your brain or a bit of your money. Visit the labs.taboca.com/p/camcanvas for additional information. This API offers webcam image access via JavaScript and canvas tag. This version comes with a swf binary ( Flash ) compiled using Mtasc - this is flash 8 compatible. The flash code renders the live webcam image and does the initial capture. Settings, snapshot control, and the resulting image can be accessed from JavaScript. 
+
+Marcio

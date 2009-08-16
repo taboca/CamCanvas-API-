@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+<SCRIPT LANGUAGE="JavaScript">
+
+var canvas = null;
+var ctx = null;
+
+function t1() {
+	replaceImageData();
+}
+
+
+var gCtx = null;
+var gCanvas = null;
+    var gCanvas2 = null;
+    var gCtx = null;
+    var gCtx2 = null;
+    var gActive = false;
+    var gStartX = 0;
+    var gStartY = 0;
+    var gEndX = -1;
+    var gEndY = -1;
+
+
+
+ function copyImageToCanvas(aImg)
+    {
+      gCanvas = document.getElementById("canvas");
+      var w = aImg.naturalWidth;
+      var h = aImg.naturalHeight;
+      gCanvas.style.width = w + "px";
+      gCanvas.style.height = h + "px";
+      gCanvas.width = w;
+      gCanvas.height = h;
+
+      gCtx = gCanvas.getContext("2d");
+      gCtx.clearRect(0, 0, w, h);
+      gCtx.drawImage(aImg, 0, 0);
+
+      var container = gCanvas.parentNode;
+      gCanvas2 = document.createElement('canvas');
+      gCanvas2.id = "imageTemp";
+      gCanvas2.width  = w;
+      gCanvas2.height = h;
+      container.appendChild(gCanvas2);
+      gCtx2 = gCanvas2.getContext("2d");
+    }
+
+
+function replaceImageData() { 
+	var img = new Image();
+	img.src="canvas.png";
+	img.onload = function() { copyImageToCanvas(img); continueCanvas() }
+} 
+
+var imageData = null;
+
+function continueCanvas() { 
+
+ imageData = gCtx.getImageData( 0,0,320,240);
+
+      for (var x = 0; x < imageData.width; x++)
+        for (var y = 0; y < imageData.height; y++)
+        {
+          var offset = (y * imageData.width + x) * 4;
+          var r = imageData.data[offset];
+          var g = imageData.data[offset + 1];
+          var b = imageData.data[offset + 2];
+	  imageData.data[offset]=0;
+
+        }
+      gCtx.putImageData(imageData, 0,0);
+
+}
+
+	var ii=0;
+	var jj=0;
+	var c=0;
+
+	function passLine(stringPixels) { 
+		//a = (intVal >> 24) & 0xff;
+
+		var coll = stringPixels.split("-");
+	
+		for(var i=0;i<320;i++) { 
+
+			var intVal = parseInt(coll[i]);
+
+		r = (intVal >> 16) & 0xff;
+		g = (intVal >> 8) & 0xff;
+		b = (intVal ) & 0xff;
+		imageData.data[c+0]=r;
+		imageData.data[c+1]=g;
+		imageData.data[c+2]=b;
+		imageData.data[c+3]=128;
+		c+=4;
+		} 
+
+
+		if(c>=320*240*4) { 
+			c=0;
+      			gCtx.putImageData(imageData, 0,0);
+		} 
+ 	} 
+
+	function passImage(intVal) { 
+		//a = (intVal >> 24) & 0xff;
+		r = (intVal >> 16) & 0xff;
+		g = (intVal >> 8) & 0xff;
+		b = (intVal ) & 0xff;
+		imageData.data[c+0]=r;
+		imageData.data[c+1]=g;
+		imageData.data[c+2]=b;
+		imageData.data[c+3]=128;
+		c+=4;
+		if(c>=320*240*4) { 
+      			gCtx.putImageData(imageData, 0,0);
+		} 
+ 	} 
+
+	function fix() { 
+	} 
+
+        function captureToCanvas() {
+		flash = document.getElementById("embedflash");
+		flash.ccCapture();
+        }
+
+ </script>
+
+
+  <title>Camcanvas - Webcam to Canvas JavaScript API</title>
+  </head>
+
+  <body onload="t1()">
+
+<input type="text" id="rr" value="" />
+<button onclick="captureToCanvas()">Capture to Canvas</button>
+	
+    <div class="container">
+
+  	<object  id="iembedflash" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="640" height="240">
+  		<param name="movie" value="camcanvas.swf" />
+  		<param name="quality" value="high" />
+		<param name="allowScriptAccess" value="always" />
+  		<embed  allowScriptAccess="always"  id="embedflash" src="camcanvas.swf" quality="high" width="640" height="240" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" mayscript="true"  />
+    </object>
+
+    </div>
+
+
+   <canvas style="border:1px solid yellow"  id="canvas" width="320" height="240"></canvas>
+  </body>
+</html>
