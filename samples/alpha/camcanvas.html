@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+<SCRIPT LANGUAGE="JavaScript">
+
+	var gCtx = null;
+	var gCanvas = null;
+
+	var imageData = null;
+	var ii=0;
+	var jj=0;
+	var c=0;
+
+	function pageLoad() { 
+		initCanvas(320,240);
+	} 
+
+
+	function initCanvas(ww,hh)
+	{
+		gCanvas = document.getElementById("canvas");
+		var w = ww;
+		var h = hh;
+		gCanvas.style.width = w + "px";
+		gCanvas.style.height = h + "px";
+		gCanvas.width = w;
+		gCanvas.height = h;
+		gCtx = gCanvas.getContext("2d");
+		gCtx.clearRect(0, 0, w, h);
+		imageData = gCtx.getImageData( 0,0,320,240);
+	}
+
+	function passLine(stringPixels) { 
+		//a = (intVal >> 24) & 0xff;
+
+		var coll = stringPixels.split("-");
+	
+		for(var i=0;i<320;i++) { 
+			var intVal = parseInt(coll[i]);
+			r = (intVal >> 16) & 0xff;
+			g = (intVal >> 8) & 0xff;
+			b = (intVal ) & 0xff;
+			var media = parseInt( (r+g+b) /3 );
+			imageData.data[c+0]=media;
+			imageData.data[c+1]=media;
+			imageData.data[c+2]=media;
+			imageData.data[c+3]=255;
+			c+=4;
+		} 
+
+		if(c>=320*240*4) { 
+			c=0;
+      			gCtx.putImageData(imageData, 0,0);
+		} 
+ 	} 
+
+        function captureToCanvas() {
+		flash = document.getElementById("embedflash");
+		flash.ccCapture();
+        }
+
+	function copyImageToCanvas(aImg)
+    {
+
+      gCtx.drawImage(aImg, 0, 0);
+
+    }
+
+
+	function replaceImageData() {
+      	  var img = new Image();
+      	  img.src="bars.png";
+      	  img.onload = function() { copyImageToCanvas(img); }
+	}
+
+
+
+ </script>
+
+  <title>Camcanvas - Webcam to Canvas JavaScript API</title>
+
+  </head>
+
+  <body onload="pageLoad()">
+
+<button onclick="captureToCanvas()">Capture to Canvas</button>
+<button onclick="replaceImageData()">Copy logo</button>
+	
+    <div class="container">
+
+  	<object  id="iembedflash" classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=7,0,0,0" width="320" height="240">
+  		<param name="movie" value="camcanvas.swf" />
+  		<param name="quality" value="high" />
+		<param name="allowScriptAccess" value="always" />
+  		<embed  allowScriptAccess="always"  id="embedflash" src="camcanvas.swf" quality="high" width="320" height="240" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" mayscript="true"  />
+    </object>
+
+    </div>
+
+   <canvas style="border:1px solid yellow"  id="canvas" width="320" height="240"></canvas>
+
+  </body>
+</html>
