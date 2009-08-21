@@ -53,9 +53,25 @@
 				var oldR = imageDataBuffer.data[c+0];
 				var oldG = imageDataBuffer.data[c+1];
 				var oldB = imageDataBuffer.data[c+2];
-				var oldM = (oldR+oldG+oldB)/3;
-				var newm = (r+g+b)/3;
-				if(newm > oldM+10 || newm < oldM-10) { 
+
+				var bR = imageData.data[c-4+0];
+			 	var bG = imageData.data[c-4+1];
+			  	var bB = imageData.data[c-4+2];
+
+				mVote=0;
+				rr = false;
+				gg = false;
+				bb = false;
+				if( Math.abs(r-oldR) >30 ) { 
+					rr=true;
+				} 
+				if( Math.abs(g-oldG) >30 ) { 
+					gg=true;
+				} 
+				if( Math.abs(b-oldB) >30 ) { 
+					bb=true;
+				} 
+				if(rr&&gg&&bb) { 
 					imageData.data[c+0]=r;
 					imageData.data[c+1]=g;
 					imageData.data[c+2]=b;
