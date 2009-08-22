@@ -62,24 +62,12 @@
 				rr = false;
 				gg = false;
 				bb = false;
-				if( Math.abs(r-oldR) >30 ) { 
-					rr=true;
-				} 
-				if( Math.abs(g-oldG) >30 ) { 
-					gg=true;
-				} 
-				if( Math.abs(b-oldB) >30 ) { 
-					bb=true;
-				} 
-				if(rr&&gg&&bb) { 
+				r = Math.abs(r-oldR);
+				g = Math.abs(g-oldG);
+				b = Math.abs(b-oldB);
 					imageData.data[c+0]=r;
 					imageData.data[c+1]=g;
 					imageData.data[c+2]=b;
-				} else { 
-					imageData.data[c+0]=255;
-					imageData.data[c+1]=255;
-					imageData.data[c+2]=255;
-				} 
 				imageData.data[c+3]=255;
 			}
 			c+=4;
