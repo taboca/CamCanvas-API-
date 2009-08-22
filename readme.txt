@@ -5,6 +5,7 @@ This API allows you to capture webcam images and use it in the canvas tag to do 
 Online Projects using CamCanvas and Demos
 ====
 http://remixpic.taboca.com/co/mozilla/
+http://cam.mamulti.com/ ( Bruno Barreto Face Detection Algorithm ) 
 http://www.taboca.com/p/camcanvas/
 
 Roadmap
