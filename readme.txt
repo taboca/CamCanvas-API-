@@ -11,8 +11,11 @@ http://www.taboca.com/p/camcanvas/
 Roadmap
 ====
 
-* Cam Gestures - higher level edge/pattern detection
+* DONE= Function - ccCameraList -  retrive the camera list string names separated by comma
+* PENDING= Function - ccInit(index) - set the active - if index is passed, it refers to items in the cameralist
+* PENDING= Cam Gestures - higher level edge/pattern detection
 * More image manipulation samples ( eliminate background, chromakey etc ) 
+
 
 
 Depends on: 
