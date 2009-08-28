@@ -8,7 +8,26 @@ class camcanvas {
 		snap();
 		return input;
 	}
-	public static function exportInit(input:String):String {
+	public static function exportInit(input:Number, x:Number, y:Number):String {
+		if(input) { 
+			_root.cam = Camera.get(input);
+		} else { 
+			_root.cam = Camera.get();
+		} 
+		if(x&&y) { 
+			_root.cam.setMode(x,y, 24)
+		} else { 
+			_root.cam.setMode(320,240, 24)
+		}  
+
+//		_root.cam = Camera.get();
+//		_root.cam.setMode(320,240, 24)
+
+		_root.attachMovie("ObjetVideo", "webcamVideo", 1);
+		_root.webcamVideo.attachVideo(_root.cam);
+		_root.webcamVideo._x = 0;
+
+
 		return "  " ;
 	}
 
@@ -27,18 +46,12 @@ class camcanvas {
 	
 	public static function main() {		
 
-		_root.cam = Camera.get();
-		_root.cam.setMode(320,240, 24)
-		_root.attachMovie("ObjetVideo", "webcamVideo", 1);
-		_root.webcamVideo.attachVideo(_root.cam);
-		_root.webcamVideo._x = 0;
-
 		_root.refFunc = exportCapture;
 		_root.refFunc2 = exportCameraList;
 		_root.refFunc3 = exportInit;
 
 		ExternalInterface.addCallback("ccCapture", _root, _root.refFunc);
-		ExternalInterface.addCallback("ccCameraList", _root, _root.refFunc2);
+		ExternalInterface.addCallback("ccList", _root, _root.refFunc2);
 		ExternalInterface.addCallback("ccInit", _root, _root.refFunc3);
 
 	}

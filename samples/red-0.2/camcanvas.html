@@ -54,16 +54,25 @@
  	} 
 
 	function getCameraList() { 
-		
 		flash = document.getElementById("embedflash");
-		var list = flash.ccCameraList();
-		alert(list);
-
+		var list = flash.ccList();
+		var arrayCam = list.split(",");
+		for(var i=0;i<arrayCam.length;i++) { 
+			var curr = arrayCam[i];	
+			document.getElementById("options").innerHTML+="<option>"+curr+"</option>";
+		} 
 	} 
         function captureToCanvas() {
 		flash = document.getElementById("embedflash");
 		flash.ccCapture();
         }
+
+	function setCamera() { 
+		var camIndex = document.getElementById("options").selectedIndex;
+		flash = document.getElementById("embedflash");
+		flash.ccInit(parseInt(camIndex),320,240);
+		
+	} 
 
  </script>
 
@@ -74,6 +83,7 @@
   <body onload="pageLoad()">
 
 <button onclick="getCameraList()">Get the Camera List</button>
+<select name="cameraOptions" id="options" onchange="setCamera()"></select>
 <button onclick="captureToCanvas()">Capture to Canvas</button>
 	
     <div class="container">

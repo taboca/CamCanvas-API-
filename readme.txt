@@ -11,7 +11,6 @@ http://www.taboca.com/p/camcanvas/
 Roadmap
 ====
 
-* DONE= Function - ccCameraList -  retrive the camera list string names separated by comma
 * PENDING= Function - ccInit(index) - set the active - if index is passed, it refers to items in the cameralist
 * PENDING= Cam Gestures - higher level edge/pattern detection
 * More image manipulation samples ( eliminate background, chromakey etc ) 
@@ -33,4 +32,12 @@ You will also need ./lib/* from mtasc : ./lib/std and ./lib/std8
 
 Cp the binary ./swf/* to the ./samples/ and enjoy the samples. 
 
+Release Notes
+===
+
+* 0.2
+ + ccGetCameraList function returns strings of camera names separated by comma
+ + ccInit(index) 
+
+* 0.1 - basic function ccCapture() only;  Default was 320x240; Once the flash is active the webcam was initialized; expected JS callback needs to be called passLine. A line of 320 pixels is tranfered to JavaScript - all pixels in a string; 
 
