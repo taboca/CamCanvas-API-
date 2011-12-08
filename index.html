@@ -20,7 +20,8 @@
   </div>
 
   <div>
-    <canvas style="border:1px solid #AAA" id="canvas" width="320" height="240"></canvas>
+    <canvas id="canvas" style="border:1px solid #AAA" width="320" height="240"></canvas>
+    <img id="meh" />
   </div>
 
   <script type="text/javascript">
@@ -35,7 +36,10 @@
 
     var w;
     var h;
-
+    
+    // For rendering the PNG
+    var image = new Image();
+    
     function pageLoad() { 
      init(320,240);
     }
@@ -52,18 +56,18 @@
       var params = {
         "quality": "high",
         "allowScriptAccess": "always",
-        // "scale": "noscale"
+        "scale": "noscale"
       };
       var attributes = {
         "mayscript": "true"
       };
       
-      swfobject.embedSWF("camcanvas.swf", "embedflash", w, h, "9.0.0", null, flashvars, params, attributes, function(e){
+      swfobject.embedSWF("bin-debug/camcanvas.swf?", "embedflash", w, h, "9.0.0", null, flashvars, params, attributes, function(e){
         if (e.success) {
           setTimeout ( function () {
             var flash = document.getElementById("embedflash");
-            flash.ccInit(null,w,h);
-          }, 1000 );
+            flash.ccInit(w,h);
+          }, 1500 );
         }
       });
       
@@ -79,36 +83,24 @@
       gCtx.clearRect(0, 0, w, h);
       imageData = gCtx.getImageData( 0, 0, w, h );
     }
-
-    function passLine(stringPixels) { 
-      //a = (intVal >> 24) & 0xff;
-
-      var coll = stringPixels.split("-");
+    
+    function bitmapData(bitmapData) {
+      image.src = "data:image/png;base64,"+bitmapData;
       
-      console.log(coll.length);
-
-      for (var i=0; i<w; i++) { 
-        var intVal = parseInt(coll[i]);
-        r = (intVal >> 16) & 0xff;
-        g = (intVal >> 8) & 0xff;
-        b = (intVal ) & 0xff;
-        imageData.data[c+0] = r;
-        imageData.data[c+1] = g;
-        imageData.data[c+2] = b;
-        imageData.data[c+3] = 256;
-        c+=4;
-      } 
-
-      if ( c >= w*h*4 ) { 
-        c=0;
-        gCtx.putImageData(imageData, 0,0);
-      } 
-    } 
-
+      // Needs a pause to render?
+      setTimeout ( function () {
+        gCtx.drawImage(image, 0, 0);
+        sendImage();
+      }, 50 );
+    }
+    
+    function sendImage() {
+      Meemoo.send("image", gCtx.getImageData( 0, 0, w, h ));
+    }
+    
     function captureToCanvas() {
       var flash = document.getElementById("embedflash");
       flash.ccCapture();
-      Meemoo.send("image", imageData);
     }
     
     
