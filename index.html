@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  
+  <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+  <script src="http://meemoo.org/meemoo/meemoo.js"></script>
+  
+<title>Camcanvas - Webcam to Canvas JavaScript API</title>
+
+</head>
+
+<body onload="pageLoad();">
+
+  <button onclick="captureToCanvas()">Capture to Canvas</button>
+
+  <div id="webcam">
+    <div id="embedflash">
+      This module uses a flash webcam to get an image to the canvas.
+    </div>
+  </div>
+
+  <div>
+    <canvas id="canvas" style="border:1px solid #AAA" width="320" height="240"></canvas>
+    <img id="meh" />
+  </div>
+
+  <script type="text/javascript">
+   
+    var gCtx = null;
+    var gCanvas = null;
+
+    var imageData = null;
+    var ii=0;
+    var jj=0;
+    var c=0;
+
+    var w;
+    var h;
+    
+    // For rendering the PNG
+    var image = new Image();
+    
+    function pageLoad() { 
+     init(320,240);
+    }
+
+    function init(ww, hh) {
+      w = ww;
+      h = hh;
+      initFlash();
+      initCanvas();
+    }
+     
+    function initFlash () {
+      var flashvars = {};
+      var params = {
+        "quality": "high",
+        "allowScriptAccess": "always",
+        "scale": "noscale"
+      };
+      var attributes = {
+        "mayscript": "true"
+      };
+      
+      swfobject.embedSWF("bin-debug/camcanvas.swf?", "embedflash", w, h, "9.0.0", null, flashvars, params, attributes, function(e){
+        if (e.success) {
+          setTimeout ( function () {
+            var flash = document.getElementById("embedflash");
+            flash.ccInit(w,h);
+          }, 1500 );
+        }
+      });
+      
+    }
+     
+    function initCanvas() {
+      gCanvas = document.getElementById("canvas");
+      gCanvas.style.width = w + "px";
+      gCanvas.style.height = h + "px";
+      gCanvas.width = w;
+      gCanvas.height = h;
+      gCtx = gCanvas.getContext("2d");
+      gCtx.clearRect(0, 0, w, h);
+      imageData = gCtx.getImageData( 0, 0, w, h );
+    }
+    
+    function bitmapData(bitmapData) {
+      image.src = "data:image/png;base64,"+bitmapData;
+      
+      // Needs a pause to render?
+      setTimeout ( function () {
+        gCtx.drawImage(image, 0, 0);
+        sendImage();
+      }, 50 );
+    }
+    
+    function sendImage() {
+      Meemoo.send("image", gCtx.getImageData( 0, 0, w, h ));
+    }
+    
+    function captureToCanvas() {
+      var flash = document.getElementById("embedflash");
+      flash.ccCapture();
+    }
+    
+    
+    //
+    // Meemoo stuff
+    //
+    
+    Meemoo.setInfo({
+      title: "cam",
+      author: "taboca + Forrest Oliphant",
+      description: "flash webcam image to canvas"
+    }).addInputs({
+      capture: {
+        action: captureToCanvas,
+        port: true,
+        type: "bang"
+      }
+    }).addOutputs({
+      image: { 
+        port: true,
+        type: "image"
+      }
+    });
+    
+  </script>
+
+
+</body>
+</html>
