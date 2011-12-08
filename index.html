@@ -62,7 +62,7 @@
         "mayscript": "true"
       };
       
-      swfobject.embedSWF("bin-debug/camcanvas.swf?", "embedflash", w, h, "9.0.0", null, flashvars, params, attributes, function(e){
+      swfobject.embedSWF("camcanvas.swf", "embedflash", w, h, "9.0.0", null, flashvars, params, attributes, function(e){
         if (e.success) {
           setTimeout ( function () {
             var flash = document.getElementById("embedflash");
