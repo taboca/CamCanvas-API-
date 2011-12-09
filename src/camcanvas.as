@@ -1,10 +1,16 @@
 package {
 
 // Thanks http://www.websector.de/blog/2009/06/21/speed-up-jpeg-encoding-using-alchemy/
-import cmodule.as3_jpeg_wrapper.CLibInit;
+//import cmodule.as3_jpeg_wrapper.CLibInit;
+
+// Thanks http://segfaultlabs.com/devlogs/alchemy-asynchronous-jpeg-encoding-2
+import cmodule.aircall.CLibInit;
 
 import flash.display.BitmapData;
 import flash.display.Sprite;
+import flash.display.StageAlign;
+import flash.display.StageScaleMode;
+import flash.events.Event;
 import flash.external.ExternalInterface;
 import flash.media.Camera;
 import flash.media.Video;
@@ -17,13 +23,17 @@ public class camcanvas extends Sprite{
 	private var video:Video;
 	private var w:int;
 	private var h:int;
-	private var quality:int = 75;
+	private var quality:int = 50;
 	
 	private var snapshot:BitmapData;
 	private var pixels:Array;
 	
-	private static var as3_jpeg_wrapper:Object;
-
+//	private static var as3_jpeg_wrapper:Object;
+	
+	private var jpeglib:Object;
+	private var encBytes:ByteArray;
+	private var working:Boolean = false;
+	
 	public function camcanvas():void {
 		
 		ExternalInterface.addCallback("ccInit", exportInit);
@@ -40,30 +50,53 @@ public class camcanvas extends Sprite{
 		
 		// Init stage
 		stage.scaleMode = StageScaleMode.NO_SCALE;
-		stage.align = StageAlign.TOP;
+		stage.align = StageAlign.TOP_LEFT;
 		
-		// load Jpeg encoder module
-		var loader:CLibInit = new CLibInit;
-		as3_jpeg_wrapper = loader.init();
+		// load, wrap Jpeg encoder
+//		var loader:CLibInit = new CLibInit;
+//		as3_jpeg_wrapper = loader.init();
+		
+		var jpeginit:CLibInit = new CLibInit(); // get library
+		jpeglib = jpeginit.init(); // initialize library exported class to an object
 
 	}
 
 
 
 	public function exportCapture():void {
-		snapshot.draw(video);
+		// Use async so that we can ignore requests while the last frame is still encoding
+		if (working) {
+			return void;
+		}
 		
-		// Thanks https://github.com/cameron314/PNGEncoder2
-		// ExternalInterface.call("bitmapData", Base64.encode(PNGEncoder2.encode(snapshot)));
-		
-		// Encode to JPEG
-		var rawBytes:ByteArray = snapshot.getPixels( snapshot.rect );
-		var encBytes:ByteArray = as3_jpeg_wrapper.write_jpeg_file(rawBytes, snapshot.width, snapshot.height, 3, 2, quality);
-		
-		// Encode to Base64 and send to HTML
-		ExternalInterface.call("jpegData", Base64.encode(encBytes)); 
+		try {
+			working = true;
+			
+			// Webcam to bitmap
+			snapshot.draw(video);
+			
+			// Bitmap to bytes
+			var rawBytes:ByteArray = snapshot.getPixels( snapshot.rect );
+			rawBytes.position = 0; 
+			encBytes = new ByteArray();
+			
+			jpeglib.encodeAsync(encodeComplete, rawBytes, encBytes, snapshot.width, snapshot.height, quality);
+
+		} catch (e:Error) {
+			// Don't block the next try if it didn't work
+			working = false;
+		}
 		
 	}
+	
+	private function encodeComplete(e:Event=null):void {
+		// Encode to Base64 and send to JavaScript
+		ExternalInterface.call("jpegData", Base64.encode(encBytes));
+		
+		// Allow next frame
+		working = false;
+	}
+	
 	
 	public function exportInit(_w:int, _h:int):String {
 		

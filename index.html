@@ -41,12 +41,12 @@
     var image = new Image();
     
     function pageLoad() { 
-     init(320,240);
+      init(320,240);
     }
 
-    function init(ww, hh) {
-      w = ww;
-      h = hh;
+    function init(_w, _h) {
+      w = _w;
+      h = _h;
       initFlash();
       initCanvas();
     }
@@ -62,7 +62,8 @@
         "mayscript": "true"
       };
       
-      swfobject.embedSWF("bin-debug/camcanvas.swf?", "embedflash", w, h, "9.0.0", null, flashvars, params, attributes, function(e){
+      // Keep it bigger than 320x240 for webcam security dialog
+      swfobject.embedSWF("bin-debug/camcanvas.swf?", "embedflash", (w >= 320 ? w : 320), (h >= 240 ? h : 240), "10.0.0", null, flashvars, params, attributes, function(e){
         if (e.success) {
           setTimeout ( function () {
             var flash = document.getElementById("embedflash");
@@ -85,7 +86,9 @@
     }
     
     function jpegData(b64jpg) {
-      image.src = "data:image/jpg;base64," + b64jpg;
+      image.src = "data:image/jpeg;base64," + b64jpg;
+      
+      // console.log(b64jpg);
       
       // Needs a pause to render?
       setTimeout ( function () {
