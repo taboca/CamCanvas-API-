@@ -84,8 +84,8 @@
       imageData = gCtx.getImageData( 0, 0, w, h );
     }
     
-    function bitmapData(bitmapData) {
-      image.src = "data:image/png;base64,"+bitmapData;
+    function jpegData(b64jpg) {
+      image.src = "data:image/jpg;base64," + b64jpg;
       
       // Needs a pause to render?
       setTimeout ( function () {
