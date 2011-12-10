@@ -15,20 +15,19 @@ import flash.external.ExternalInterface;
 import flash.media.Camera;
 import flash.media.Video;
 import flash.utils.ByteArray;
+import flash.utils.setTimeout;
 
 [SWF(backgroundColor=0x000000, frameRate=30)]
 public class camcanvas extends Sprite{
 	
 	private var camera:Camera;
 	private var video:Video;
-	private var w:int;
-	private var h:int;
-	private var quality:int = 50;
+	private var w:int = 160;
+	private var h:int = 120;
+	private var quality:int = 75;
 	
 	private var snapshot:BitmapData;
 	private var pixels:Array;
-	
-//	private static var as3_jpeg_wrapper:Object;
 	
 	private var jpeglib:Object;
 	private var encBytes:ByteArray;
@@ -39,6 +38,7 @@ public class camcanvas extends Sprite{
 		ExternalInterface.addCallback("ccInit", exportInit);
 		ExternalInterface.addCallback("ccCapture", exportCapture);
 		ExternalInterface.addCallback("ccList", exportCameraList);
+		ExternalInterface.addCallback("ccQuality", exportQuality);
 		
 		if(stage) init();
 		else addEventListener(Event.ADDED_TO_STAGE, init);
@@ -53,18 +53,13 @@ public class camcanvas extends Sprite{
 		stage.align = StageAlign.TOP_LEFT;
 		
 		// load, wrap Jpeg encoder
-//		var loader:CLibInit = new CLibInit;
-//		as3_jpeg_wrapper = loader.init();
-		
 		var jpeginit:CLibInit = new CLibInit(); // get library
 		jpeglib = jpeginit.init(); // initialize library exported class to an object
 
 	}
 
-
-
 	public function exportCapture():void {
-		// Use async so that we can ignore requests while the last frame is still encoding
+		// working was for async
 		if (working) {
 			return void;
 		}
@@ -78,51 +73,57 @@ public class camcanvas extends Sprite{
 			// Bitmap to bytes
 			var rawBytes:ByteArray = snapshot.getPixels( snapshot.rect );
 			rawBytes.position = 0; 
-			encBytes = new ByteArray();
 			
-			jpeglib.encodeAsync(encodeComplete, rawBytes, encBytes, snapshot.width, snapshot.height, quality);
-
+			// Bitmap bytes to JPG bytes
+			encBytes = new ByteArray();
+			jpeglib.encode(rawBytes, encBytes, snapshot.width, snapshot.height, quality)
+			
+			// JPG bytes to Base64 to JavaScript
+			ExternalInterface.call("jpegData", Base64.encode(encBytes));
+			
+			working = false;
+			
 		} catch (e:Error) {
 			// Don't block the next try if it didn't work
 			working = false;
 		}
+	}
 		
+	public function exportQuality(_q:int):void {
+		if (0 <= _q && _q <= 100) {
+			quality = _q;
+		}
 	}
 	
-	private function encodeComplete(e:Event=null):void {
-		// Encode to Base64 and send to JavaScript
-		ExternalInterface.call("jpegData", Base64.encode(encBytes));
-		
-		// Allow next frame
-		working = false;
-	}
-	
-	
-	public function exportInit(_w:int, _h:int):String {
-		
-		camera = Camera.getCamera();
-		
-		if( _w && _h) { 
+	public function exportInit(_w:int=0, _h:int=0):void {
+		var success:Boolean = false;
+		var status:String = "";
+		if( _w>0 && _h>0) { 
 			w = _w;
 			h = _h;
-		} else { 
-			w = 160;
-			h = 120;
+		}
+
+		try {
+			camera = Camera.getCamera();
+						
+			camera.setMode( w, h, 24 )
+			video = new Video( w, h );
+			video.attachCamera( camera );
+			this.addChild(video);
+			video.x = 0;
+			video.y = 0;
+			
+			snapshot = new BitmapData( w, h, false );
+			
+			status = "setup "+w+"x"+h;
+			success = true;
+			
+		} catch (e:Error) {
+			status = "setup failed, try again";
 		}
 		
-		camera.setMode( w, h, 24 )
-		video = new Video( w, h );
-		video.attachCamera( camera );
-		
-		snapshot = new BitmapData( w, h, false );
-		
-		pixels = new Array(w*h*4);
-		
-		this.addChild(video);
-		video.x = 0;
-		video.y = 0;
-		
-		return "setup "+w+"x"+h;
+		var e:Object = {success: success, status: status};
+		ExternalInterface.call("cameraSetup", e);
 	}
 
 	public function exportCameraList(input:String):String {

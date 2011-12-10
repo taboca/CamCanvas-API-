@@ -63,7 +63,7 @@
       };
       
       // Keep it bigger than 320x240 for webcam security dialog
-      swfobject.embedSWF("bin-release/camcanvas.swf", "embedflash", (w >= 320 ? w : 320), (h >= 240 ? h : 240), "10.0.0", null, flashvars, params, attributes, function(e){
+      swfobject.embedSWF("bin-debug/camcanvas.swf", "embedflash", (w >= 320 ? w : 320), (h >= 240 ? h : 240), "10.0.0", null, flashvars, params, attributes, function(e){
         if (e.success) {
           setupCamera();
         }
