@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
+
   
   <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
   <script src="http://meemoo.org/meemoo/meemoo.js"></script>
@@ -63,7 +64,7 @@
       };
       
       // Keep it bigger than 320x240 for webcam security dialog
-      swfobject.embedSWF("bin-release/camcanvas.swf", "embedflash", (w >= 320 ? w : 320), (h >= 240 ? h : 240), "10.0.0", null, flashvars, params, attributes, function(e){
+      swfobject.embedSWF("bin-debug/camcanvas.swf", "embedflash", (w >= 320 ? w : 320), (h >= 240 ? h : 240), "10.0.0", null, flashvars, params, attributes, function(e){
         if (e.success) {
           setupCamera();
         }
@@ -124,6 +125,7 @@
       var flash = document.getElementById("embedflash");
       flash.ccQuality(quality);
     }
+    
     
     //
     // Meemoo stuff
