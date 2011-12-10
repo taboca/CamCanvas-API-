@@ -2,10 +2,16 @@
 <html>
 <head>
   <meta charset="utf-8" />
-
   
   <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
   <script src="http://meemoo.org/meemoo/meemoo.js"></script>
+  
+  <style type="text/css">
+    html, body, div, canvas {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
   
 <title>Camcanvas - Webcam to Canvas JavaScript API</title>
 
@@ -37,6 +43,9 @@
 
     var w;
     var h;
+    var q;
+    
+    var initTimer;
     
     // For rendering the PNG
     var image = new Image();
@@ -48,8 +57,14 @@
     function init(_w, _h) {
       w = _w;
       h = _h;
-      initFlash();
-      initCanvas();
+      // Only init once (pageLoad will, but setState can override)
+      if (initTimer) {
+        clearTimeout(initTimer);
+      }
+      initTimer = setTimeout(function(){
+        initFlash();
+        initCanvas();
+      }, 1000)
     }
      
     function initFlash () {
@@ -78,14 +93,14 @@
         flash.ccInit(w,h);
       } catch (e) {
         // Try again in 1.5s
-        setTimeout(setupCamera, 1500);
+        setTimeout(setupCamera, 1000);
       }
     }
     
     function cameraSetup(e) {
       if (!e.success) {
         // Try again in 1.5s
-        setTimeout(setupCamera, 1500);
+        setTimeout(setupCamera, 1000);
       }
     }
     
@@ -101,9 +116,9 @@
     }
     
     function jpegData(b64jpg) {
-      image.src = "data:image/jpeg;base64," + b64jpg;
+      Meemoo.send("jpg", b64jpg);
       
-      // console.log(b64jpg);
+      image.src = "data:image/jpeg;base64," + b64jpg;
       
       // Needs a pause to render?
       setTimeout ( function () {
@@ -117,13 +132,27 @@
     }
     
     function captureToCanvas() {
-      var flash = document.getElementById("embedflash");
-      flash.ccCapture();
+      try {
+        var flash = document.getElementById("embedflash");
+        flash.ccCapture();
+      } catch (e) {
+        // Flash isn't ready, do nothing
+      }
     }
     
     function setQuality(quality) {
-      var flash = document.getElementById("embedflash");
-      flash.ccQuality(quality);
+      q = quality;
+      setQualityTry();
+    }
+    
+    function setQualityTry() {
+      try {
+        var flash = document.getElementById("embedflash");
+        flash.ccQuality(q);
+      } catch (e) {
+        // Try again in 1.5s
+        setTimeout(setQualityTry, 1500);
+      }
     }
     
     
@@ -174,6 +203,10 @@
       }
       
     }).addOutputs({
+      jpg: { 
+        port: true,
+        type: "image/jpeg"
+      },
       image: { 
         port: true,
         type: "image"
