@@ -19,23 +19,17 @@
 
 <body onload="pageLoad();">
 
-  <button onclick="captureToCanvas()">Capture to Canvas</button>
+  <button onclick="captureToJPG()">Capture to JPG</button>
 
   <div id="webcam">
     <div id="embedflash">
-      This module uses a flash webcam to get an image to the canvas.
+      This module uses a flash webcam to get a JPG image.
     </div>
   </div>
 
-  <div>
-    <canvas id="canvas" width="320" height="240"></canvas>
-  </div>
-
   <script type="text/javascript">
-   
-    var gCtx = null;
-    var gCanvas = null;
-
+    
+    
     var imageData = null;
     var ii=0;
     var jj=0;
@@ -104,34 +98,11 @@
       }
     }
     
-    function initCanvas() {
-      gCanvas = document.getElementById("canvas");
-      gCanvas.style.width = w + "px";
-      gCanvas.style.height = h + "px";
-      gCanvas.width = w;
-      gCanvas.height = h;
-      gCtx = gCanvas.getContext("2d");
-      gCtx.clearRect(0, 0, w, h);
-      imageData = gCtx.getImageData( 0, 0, w, h );
-    }
-    
     function jpegData(b64jpg) {
       Meemoo.send("jpg", "data:image/jpeg;base64," + b64jpg);
-      
-      image.src = "data:image/jpeg;base64," + b64jpg;
-      
-      // Needs a pause to render?
-      setTimeout ( function () {
-        gCtx.drawImage(image, 0, 0);
-        sendImage();
-      }, 50 );
     }
     
-    function sendImage() {
-      Meemoo.send("image", gCtx.getImageData( 0, 0, w, h ));
-    }
-    
-    function captureToCanvas() {
+    function captureToJPG() {
       try {
         var flash = document.getElementById("embedflash");
         flash.ccCapture();
@@ -162,10 +133,10 @@
     Meemoo.setInfo({
       title: "cam",
       author: "taboca + Forrest Oliphant",
-      description: "flash webcam image to canvas"
+      description: "flash webcam image to jpg data url"
     }).addInputs({
       capture: {
-        action: captureToCanvas,
+        action: captureToJPG,
         port: true,
         type: "bang"
       },
@@ -205,10 +176,6 @@
       jpg: { 
         port: true,
         type: "data:image/jpeg"
-      },
-      image: { 
-        port: true,
-        type: "image"
       }
     });
     
