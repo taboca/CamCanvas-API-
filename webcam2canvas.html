@@ -125,7 +125,7 @@
     }
     
     function sendImage() {
-      // Meemoo.send("image", gCtx.getImageData( 0, 0, w, h ));
+      Meemoo.send("image", gCtx.getImageData( 0, 0, w, h ));
     }
     
     function captureToCanvas() {
@@ -156,58 +156,54 @@
     // Meemoo stuff
     //
     
-    // Meemoo.setInfo({
-    //   title: "cam",
-    //   author: "taboca + Forrest Oliphant",
-    //   description: "flash webcam image to canvas"
-    // }).addInputs({
-    //   capture: {
-    //     action: captureToCanvas,
-    //     port: true,
-    //     type: "bang"
-    //   },
-    //   width: {
-    //     action: function (m) {
-    //       var _w = parseInt(m);
-    //       if (_w===_w) {
-    //         init(_w, h);
-    //       }
-    //     },
-    //     port: true,
-    //     type: "int",
-    //     min: "1",
-    //     max: "640"
-    //   },
-    //   height: {
-    //     action: function (m) {
-    //       var _h = parseInt(m);
-    //       if (_h===_h) {
-    //         init(w, _h);
-    //       }
-    //     },
-    //     port: true,
-    //     type: "int",
-    //     min: "1",
-    //     max: "480"
-    //   },
-    //   quality: {
-    //     action: setQuality,
-    //     port: true,
-    //     type: "int",
-    //     min: "0",
-    //     max: "100"
-    //   }
-    //   
-    // }).addOutputs({
-    //   jpg: { 
-    //     port: true,
-    //     type: "data:image/jpeg"
-    //   },
-    //   image: { 
-    //     port: true,
-    //     type: "image"
-    //   }
-    // });
+    Meemoo.setInfo({
+      title: "cam",
+      author: "taboca + Forrest Oliphant",
+      description: "flash webcam image to canvas"
+    }).addInputs({
+      capture: {
+        action: captureToCanvas,
+        port: true,
+        type: "bang"
+      },
+      width: {
+        action: function (m) {
+          var _w = parseInt(m);
+          if (_w===_w) {
+            init(_w, h);
+          }
+        },
+        port: true,
+        type: "int",
+        min: "1",
+        max: "640"
+      },
+      height: {
+        action: function (m) {
+          var _h = parseInt(m);
+          if (_h===_h) {
+            init(w, _h);
+          }
+        },
+        port: true,
+        type: "int",
+        min: "1",
+        max: "480"
+      },
+      quality: {
+        action: setQuality,
+        port: true,
+        type: "int",
+        min: "0",
+        max: "100"
+      }
+      
+    }).addOutputs({
+      image: { 
+        port: true,
+        type: "image"
+      }
+    });
     
   </script>
 
