@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  
+  <title>camcanvas</title>
+  
+  <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
+  <script src="http://meemoo.org/meemoo/meemoo.js"></script>
+  
+  <style type="text/css">
+    html, body, div, canvas {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  
+</head>
+
+<body onload="pageLoad();">
+
+
+  <div id="webcam" style="position:absolute;top:0;left:0;" >
+    <div id="embedflash">
+      This module uses a flash webcam to get an image to the canvas.
+    </div>
+    <button onclick="captureToCanvas()">Capture to Canvas</button>
+  </div>
+
+  <div>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <script type="text/javascript">
+   
+    var gCtx = null;
+    var gCanvas = null;
+
+    var imageData = null;
+    var ii=0;
+    var jj=0;
+    var c=0;
+
+    var w;
+    var h;
+    var q;
+    
+    var initTimer;
+    
+    // For rendering the JPG
+    var image = new Image();
+    
+    function pageLoad() { 
+      init(320,240);
+    }
+
+    function init(_w, _h) {
+      w = _w;
+      h = _h;
+      // Only init once (pageLoad will, but setState can override)
+      if (initTimer) {
+        clearTimeout(initTimer);
+      }
+      initTimer = setTimeout(function(){
+        initFlash();
+        initCanvas();
+      }, 1000)
+    }
+     
+    function initFlash () {
+      var flashvars = {};
+      var params = {
+        "quality": "high",
+        "allowScriptAccess": "always",
+        "scale": "noscale"
+      };
+      var attributes = {
+        "mayscript": "true"
+      };
+      
+      // Keep it bigger than 320x240 for webcam security dialog
+      swfobject.embedSWF("bin-release/camcanvas.swf", "embedflash", (w >= 320 ? w : 320), (h >= 240 ? h : 240), "10.0.0", null, flashvars, params, attributes, function(e){
+        if (e.success) {
+          setupCamera();
+        }
+      });
+      
+    }
+    
+    function setupCamera () {
+      try {
+        var flash = document.getElementById("embedflash");
+        flash.ccInit(w,h);
+      } catch (e) {
+        // Try again in 1.5s
+        setTimeout(setupCamera, 1000);
+      }
+    }
+    
+    function cameraSetup(e) {
+      if (!e.success) {
+        // Try again in 1.5s
+        setTimeout(setupCamera, 1000);
+      }
+    }
+    
+    function initCanvas() {
+      gCanvas = document.getElementById("canvas");
+      gCanvas.style.width = w + "px";
+      gCanvas.style.height = h + "px";
+      gCanvas.width = w;
+      gCanvas.height = h;
+      gCtx = gCanvas.getContext("2d");
+      gCtx.clearRect(0, 0, w, h);
+      imageData = gCtx.getImageData( 0, 0, w, h );
+    }
+    
+    function jpegData(b64jpg) {
+      // Meemoo.send("jpg", "data:image/jpeg;base64," + b64jpg);
+      image.onload = function () {
+        gCtx.drawImage(image, 0, 0);
+        sendImage();
+        gCanvas.style.position="absolute"
+        gCanvas.style.opacity = .5;
+      }
+      image.src = "data:image/jpeg;base64," + b64jpg;
+    }
+    
+    function sendImage() {
+      Meemoo.send("image", gCtx.getImageData( 0, 0, w, h ));
+    }
+    
+    function captureToCanvas() {
+      try {
+        var flash = document.getElementById("embedflash");
+        flash.ccCapture();
+      } catch (e) {
+        // Flash isn't ready, do nothing
+      }
+    }
+    
+    function setQuality(quality) {
+      q = quality;
+      setQualityTry();
+    }
+    
+    function setQualityTry() {
+      try {
+        var flash = document.getElementById("embedflash");
+        flash.ccQuality(q);
+      } catch (e) {
+        // Try again in 1.5s
+        setTimeout(setQualityTry, 1500);
+      }
+    }
+    
+    //
+    // Meemoo stuff
+    //
+    
+    Meemoo.setInfo({
+      title: "cam+onionskin",
+      author: "taboca + forresto + ginger",
+      description: "flash webcam image to canvas with onionskin of last frame"
+    }).addInputs({
+      capture: {
+        action: captureToCanvas,
+        port: true,
+        type: "bang"
+      },
+      // onionskin: {
+      //   action: function (show) {
+      //     
+      //   },
+      //   port: true,
+      //   type: "boolean"
+      // },
+      width: {
+        action: function (m) {
+          var _w = parseInt(m);
+          if (_w===_w) {
+            init(_w, h);
+          }
+        },
+        port: true,
+        type: "int",
+        min: "1",
+        max: "640"
+      },
+      height: {
+        action: function (m) {
+          var _h = parseInt(m);
+          if (_h===_h) {
+            init(w, _h);
+          }
+        },
+        port: true,
+        type: "int",
+        min: "1",
+        max: "480"
+      },
+      quality: {
+        action: setQuality,
+        port: true,
+        type: "int",
+        min: "0",
+        max: "100"
+      }
+      
+    }).addOutputs({
+      image: { 
+        port: true,
+        type: "image"
+      }
+    });
+    
+  </script>
+
+
+</body>
+</html>
