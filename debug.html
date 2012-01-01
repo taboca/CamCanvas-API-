@@ -167,7 +167,6 @@
     }).addInputs({
       capture: {
         action: captureToCanvas,
-        port: true,
         type: "bang"
       },
       width: {
@@ -177,7 +176,6 @@
             init(_w, h);
           }
         },
-        port: true,
         type: "int",
         min: "1",
         max: "640"
@@ -189,14 +187,12 @@
             init(w, _h);
           }
         },
-        port: true,
         type: "int",
         min: "1",
         max: "480"
       },
       quality: {
         action: setQuality,
-        port: true,
         type: "int",
         min: "0",
         max: "100"
@@ -204,11 +200,9 @@
       
     }).addOutputs({
       jpg: { 
-        port: true,
         type: "image/jpeg"
       },
       image: { 
-        port: true,
         type: "image"
       }
     });

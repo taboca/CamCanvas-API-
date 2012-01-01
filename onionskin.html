@@ -93,14 +93,15 @@
         var flash = document.getElementById("embedflash");
         flash.ccInit(w,h);
       } catch (e) {
-        // Try again in 1.5s
+        // Try again in 1s
         setTimeout(setupCamera, 1000);
       }
     }
     
     function cameraSetup(e) {
+      // console.log(e);
       if (!e.success) {
-        // Try again in 1.5s
+        // Try again in 1s
         setTimeout(setupCamera, 1000);
       }
     }
@@ -166,14 +167,12 @@
     }).addInputs({
       capture: {
         action: captureToCanvas,
-        port: true,
         type: "bang"
       },
       // onionskin: {
       //   action: function (show) {
       //     
       //   },
-      //   port: true,
       //   type: "boolean"
       // },
       width: {
@@ -183,7 +182,6 @@
             init(_w, h);
           }
         },
-        port: true,
         type: "int",
         min: "1",
         max: "640"
@@ -195,14 +193,12 @@
             init(w, _h);
           }
         },
-        port: true,
         type: "int",
         min: "1",
         max: "480"
       },
       quality: {
         action: setQuality,
-        port: true,
         type: "int",
         min: "0",
         max: "100"
@@ -210,7 +206,6 @@
       
     }).addOutputs({
       image: { 
-        port: true,
         type: "image"
       }
     });
