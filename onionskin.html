@@ -120,12 +120,19 @@
     function jpegData(b64jpg) {
       // Meemoo.send("jpg", "data:image/jpeg;base64," + b64jpg);
       image.onload = function () {
+        // gCanvas is onionskin and also JPEG-to-canvas converter
         gCtx.drawImage(image, 0, 0);
-        sendImage();
-        gCanvas.style.position="absolute"
+        gCanvas.style.position = "absolute";
         gCanvas.style.opacity = .5;
+        sendImage();
       }
       image.src = "data:image/jpeg;base64," + b64jpg;
+    }
+    
+    function onionSkin(image) {
+      gCtx.putImageData(image, 0, 0);
+      gCanvas.style.position = "absolute";
+      gCanvas.style.opacity = .5;
     }
     
     function sendImage() {
@@ -169,12 +176,10 @@
         action: captureToCanvas,
         type: "bang"
       },
-      // onionskin: {
-      //   action: function (show) {
-      //     
-      //   },
-      //   type: "boolean"
-      // },
+      onionskin: {
+        action: onionSkin,
+        type: "image"
+      },
       width: {
         action: function (m) {
           var _w = parseInt(m);
