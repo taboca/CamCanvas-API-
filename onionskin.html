@@ -6,7 +6,7 @@
   <title>camcanvas</title>
   
   <script src="http://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
-  <script src="http://meemoo.org/meemoo/meemoo.js"></script>
+  <script src="http://meemoo.org/meemoo/v1/meemoo-min.js"></script>
   
   <style type="text/css">
     html, body, div, canvas {
@@ -167,53 +167,56 @@
     // Meemoo stuff
     //
     
-    Meemoo.setInfo({
-      title: "cam+onionskin",
-      author: "taboca + forresto + ginger",
-      description: "flash webcam image to canvas with onionskin of last frame"
-    }).addInputs({
-      capture: {
-        action: captureToCanvas,
-        type: "bang"
-      },
-      onionskin: {
-        action: onionSkin,
-        type: "image"
-      },
-      width: {
-        action: function (m) {
-          var _w = parseInt(m);
-          if (_w===_w) {
-            init(_w, h);
-          }
+    Meemoo
+      .setInfo({
+        title: "cam+onionskin",
+        author: "taboca + forresto + ginger",
+        description: "flash webcam image to canvas with onionskin of last frame"
+      })
+      .addInputs({
+        capture: {
+          action: captureToCanvas,
+          type: "bang"
         },
-        type: "int",
-        min: "1",
-        max: "640"
-      },
-      height: {
-        action: function (m) {
-          var _h = parseInt(m);
-          if (_h===_h) {
-            init(w, _h);
-          }
+        onionskin: {
+          action: onionSkin,
+          type: "image"
         },
-        type: "int",
-        min: "1",
-        max: "480"
-      },
-      quality: {
-        action: setQuality,
-        type: "int",
-        min: "0",
-        max: "100"
-      }
-      
-    }).addOutputs({
-      image: { 
-        type: "image"
-      }
-    });
+        width: {
+          action: function (m) {
+            var _w = parseInt(m);
+            if (_w===_w) {
+              init(_w, h);
+            }
+          },
+          type: "int",
+          min: "1",
+          max: "640"
+        },
+        height: {
+          action: function (m) {
+            var _h = parseInt(m);
+            if (_h===_h) {
+              init(w, _h);
+            }
+          },
+          type: "int",
+          min: "1",
+          max: "480"
+        },
+        quality: {
+          action: setQuality,
+          type: "int",
+          min: "0",
+          max: "100"
+        }
+        
+      })
+      .addOutputs({
+        image: { 
+          type: "image"
+        }
+      });
     
   </script>
 
