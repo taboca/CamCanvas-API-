@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  
+  <title>camstream</title>
+  
+  <script src="http://meemoo.org/meemoo/v1/meemoo-min.js"></script>
+  
+  <style type="text/css">
+    html, body, div, canvas {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  
+</head>
+
+<body>
+
+  <div id="notice">
+    If your browser doesn't have navigator.getUserMedia, this won't work. So far that's only <a href="http://tools.google.com/dlpage/chromesxs" target="_blank">Chrome Canary</a> + <a href="http://snapshot.opera.com/labs/camera/" target="_blank">Opera Camera</a>.
+  </div>
+  <video id="video" width="320" height="240" autoplay="true"></video>
+  <canvas id="canvas" width="320" height="240"></canvas>
+
+  <script type="text/javascript">
+
+  window.addEventListener('DOMContentLoaded', function() {
+
+    var video = document.getElementById("video");
+    var canvas = document.getElementById("canvas");
+    var context = canvas.getContext("2d");
+
+    var w = 320;
+    var h = 240;
+    var delay = 100;
+
+    navigator.getUserMedia_ = navigator.getUserMedia || navigator.webkitGetUserMedia;
+    
+    if (!!navigator.getUserMedia_) {
+      navigator.getUserMedia_( "video", gotUserMedia, getUserMediaError);
+    }
+    function gotUserMedia(stream) {
+      document.getElementById("notice").style.display = 'none';
+      if (window.webkitURL) {
+        video.src = window.webkitURL.createObjectURL(stream);
+      } else {
+        video.src = stream;
+      }
+      console.log(stream);
+
+      window.setTimeout(send, delay);
+    }
+    function getUserMediaError(error) {
+      console.error('An error occurred: [CODE ' + error.code + ']');
+      return;
+    }
+
+    function init (_w, _h) {
+      w = _w;
+      h = _h;
+    }
+
+    function setDelay(_delay) {
+      _delay = parseInt(_delay);
+      if (_delay===_delay) {
+        delay = _delay;
+      }
+    }
+
+    function send() {
+      context.drawImage(video, 0, 0);
+      Meemoo.send("image", context.getImageData(0, 0, w, h));
+      // Next frame
+      window.setTimeout(send, delay);
+    }
+    
+    //
+    // Meemoo stuff
+    //
+    
+    Meemoo
+      .setInfo({
+        title: "cam stream",
+        author: "forresto",
+        description: "html5 webcam to canvas image (only works on chrome canary + opera camera)"
+      })
+      .addInputs({
+        width: {
+          action: function (_w) {
+            _w = parseInt(_w);
+            if (_w===_w) {
+              init(_w, h);
+            }
+          },
+          type: "int",
+          min: "1",
+          max: "640",
+          default: w
+        },
+        height: {
+          action: function (_h) {
+            _h = parseInt(_h);
+            if (_h===_h) {
+              init(w, _h);
+            }
+          },
+          type: "int",
+          min: "1",
+          max: "480",
+          default: h
+        },
+        delay: {
+          action: setDelay,
+          type: "int",
+          min: "10",
+          default: delay,
+          description: "how many ms between captures"
+        }
+      })
+      .addOutputs({
+        image: { 
+          type: "image"
+        }
+      });
+
+  });
+    
+  </script>
+
+
+</body>
+</html>
