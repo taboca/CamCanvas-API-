@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   
-  <title>camstream</title>
+  <title>html5cam</title>
   
   <script src="http://meemoo.org/meemoo/v1/meemoo-min.js"></script>
   
@@ -11,6 +11,9 @@
     html, body, div, canvas {
       margin: 0;
       padding: 0;
+    }
+    #videoframe {
+      overflow: hidden;
     }
   </style>
   
@@ -21,19 +24,26 @@
   <div id="notice">
     If your browser doesn't have navigator.getUserMedia, this won't work. So far that's only <a href="http://tools.google.com/dlpage/chromesxs" target="_blank">Chrome Canary</a> + <a href="http://snapshot.opera.com/labs/camera/" target="_blank">Opera Camera</a>.
   </div>
-  <video id="video" width="320" height="240" autoplay="true"></video>
+  <div id="videoframe">
+    <video id="video" width="320" height="240" autoplay="true"></video>
+  </div>
+  <!-- <canvas id="canvas"></canvas> -->
 
   <script type="text/javascript">
 
   window.addEventListener('DOMContentLoaded', function() {
 
     var video = document.getElementById("video");
+    // var canvas = document.getElementById("canvas");
     var canvas = document.createElement("canvas");
     var context = canvas.getContext("2d");
 
     var w = 640;
     var h = 480;
     var delay = 200;
+
+    var videoMargin = {left:0, top:0};
+    var videoframe = document.getElementById("videoframe");
 
     if ( !window.URL ) {
       window.URL = window.webkitURL || window.msURL || window.oURL;
@@ -62,8 +72,24 @@
     function init (_w, _h) {
       w = _w;
       h = _h;
-      video.width = canvas.width = w;
-      video.height = canvas.height = h;
+      // Video seems locked to 4:3, so do cropping in CSS
+      if (w/h >= 4/3) {
+        video.width = w;
+        video.height = w*4/3;
+        videoMargin.left = 0;
+        videoMargin.top = (video.height - h)/2;
+      } else {
+        video.width = h*4/3;
+        video.height = h;
+        videoMargin.left = (video.width - w)/2;
+        videoMargin.top = 0;
+      }
+      canvas.width = video.width;
+      canvas.height = video.height;
+      videoframe.style.width = w+"px";
+      videoframe.style.height = h+"px";
+      video.style.marginLeft = "-"+videoMargin.left+"px";
+      video.style.marginTop = "-"+videoMargin.top+"px";
     }
 
     function setDelay(_delay) {
@@ -74,8 +100,8 @@
     }
 
     function send() {
-      context.drawImage(video, 0, 0, w, h);
-      Meemoo.send("image", context.getImageData(0, 0, w, h));
+      context.drawImage(video, 0, 0, video.width, video.height);
+      Meemoo.send("image", context.getImageData(videoMargin.left, videoMargin.top, w, h));
       // Next frame
       window.setTimeout(send, delay);
     }
