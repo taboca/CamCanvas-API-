@@ -22,34 +22,36 @@
     If your browser doesn't have navigator.getUserMedia, this won't work. So far that's only <a href="http://tools.google.com/dlpage/chromesxs" target="_blank">Chrome Canary</a> + <a href="http://snapshot.opera.com/labs/camera/" target="_blank">Opera Camera</a>.
   </div>
   <video id="video" width="320" height="240" autoplay="true"></video>
-  <canvas id="canvas" width="320" height="240"></canvas>
 
   <script type="text/javascript">
 
   window.addEventListener('DOMContentLoaded', function() {
 
     var video = document.getElementById("video");
-    var canvas = document.getElementById("canvas");
+    var canvas = document.createElement("canvas");
     var context = canvas.getContext("2d");
 
-    var w = 320;
-    var h = 240;
-    var delay = 100;
+    var w = 640;
+    var h = 480;
+    var delay = 200;
 
-    navigator.getUserMedia_ = navigator.getUserMedia || navigator.webkitGetUserMedia;
-    
-    if (!!navigator.getUserMedia_) {
-      navigator.getUserMedia_( "video", gotUserMedia, getUserMediaError);
+    if ( !window.URL ) {
+      window.URL = window.webkitURL || window.msURL || window.oURL;
+    }
+    if ( !navigator.getUserMedia ) {
+      navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || false;
+    }
+
+    if (navigator.getUserMedia) {
+      navigator.getUserMedia( { video: true, audio: false }, gotUserMedia, getUserMediaError);
     }
     function gotUserMedia(stream) {
       document.getElementById("notice").style.display = 'none';
-      if (window.webkitURL) {
-        video.src = window.webkitURL.createObjectURL(stream);
+      if (window.URL.createObjectURL) {
+        video.src = window.URL.createObjectURL(stream);
       } else {
         video.src = stream;
       }
-      console.log(stream);
-
       window.setTimeout(send, delay);
     }
     function getUserMediaError(error) {
@@ -60,6 +62,8 @@
     function init (_w, _h) {
       w = _w;
       h = _h;
+      video.width = canvas.width = w;
+      video.height = canvas.height = h;
     }
 
     function setDelay(_delay) {
@@ -70,7 +74,7 @@
     }
 
     function send() {
-      context.drawImage(video, 0, 0);
+      context.drawImage(video, 0, 0, w, h);
       Meemoo.send("image", context.getImageData(0, 0, w, h));
       // Next frame
       window.setTimeout(send, delay);
