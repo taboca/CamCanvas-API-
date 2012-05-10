@@ -38,8 +38,8 @@
     var canvas = document.createElement("canvas");
     var context = canvas.getContext("2d");
 
-    var w = 640;
-    var h = 480;
+    var w = 320;
+    var h = 240;
     var delay = 200;
 
     var videoMargin = {left:0, top:0};
@@ -75,7 +75,7 @@
       // Video seems locked to 4:3, so do cropping in CSS
       if (w/h >= 4/3) {
         video.width = w;
-        video.height = w*4/3;
+        video.height = w*3/4;
         videoMargin.left = 0;
         videoMargin.top = (video.height - h)/2;
       } else {
