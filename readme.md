@@ -7,7 +7,8 @@
 This was a flash-based library with JS interoperability — this was a work not in progress in past 3 years. Now we have WebRTC and we should go the web way. The reason this is update is so that we can continue to evolve camera works — to ensure we have awareness of the importance for client side operations with camera. 
 
 ## Hall of Fame for Camera to JS 
-
+ 
+* [Article with demo emboss, red, normal, inverse](http://labs.telasocial.com/webcam-canvas/)
 Send your links – with this API or if you are using other APIs too. It's just a bit of code to add camera with WebRTC so let's think that this repo is more like a place to talk about, to learn, to be inspired and to action. 
 
 ## Legacy 0.2 with Flash (documentation)
