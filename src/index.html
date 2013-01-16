@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Camera Canvas Manipulation</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+<script type="text/javascript" src="camcanvas.js"></script>
+</head>
+
+<body onload="init()">
+
+<a href='https://github.com/taboca/telasocial-labs/tree/master/pages/webcam-canvas'>This demo works with Chrome Canary for now</a> - help update
+
+<button onclick="setFunction(passEmboss)">Emboss</button>
+<button onclick="setFunction(passRed)">Red</button>
+<button onclick="setFunction(passNormal)">Normal</button>
+<button onclick="setFunction(passInverse)">Inversed</button>
+<button onclick="setFunction(passGray)">Grayscale</button>
+
+<p>
+<video id="v" width="320" height="240"></video>
+<canvas id="c" width="320" height="240"></canvas>
+</p>
+
+</html>
+
+</body>
+</html>
