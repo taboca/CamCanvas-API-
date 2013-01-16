@@ -9,6 +9,7 @@ This was a flash-based library with JS interoperability — this was a work not 
 ## Hall of Fame for Camera to JS 
  
 * [Article with demo emboss, red, normal, inverse](http://labs.telasocial.com/webcam-canvas/)
+
 Send your links – with this API or if you are using other APIs too. It's just a bit of code to add camera with WebRTC so let's think that this repo is more like a place to talk about, to learn, to be inspired and to action. 
 
 ## Legacy 0.2 with Flash (documentation)
