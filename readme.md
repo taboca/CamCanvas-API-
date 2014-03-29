@@ -1,6 +1,7 @@
 ## Webcam to Canvas with JavaScript using HTML5 
  
 * Version 0.3 
+* Useful to your work/research? [send a gittip to me](http://www.gittip.com/taboca). 
 
 ## Important
 
