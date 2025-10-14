@@ -1,6 +1,6 @@
 # Webcam to Canvas with JavaScript (HTML5)
 
-## [Site Labs Series episode 020 video](https://www.youtube.com/watch?v=ClwBub6X6wg)
+## [EvangelistCast Season Episode 020 video - Web Cam and JavaScript Canvas](https://www.youtube.com/watch?v=ClwBub6X6wg)
 
 * Evangelist [Marcio S. Galli](https://www.mgalli.com)
 * Video demo [Site Labs Season - Episode 020 - Cam Canvas](https://www.youtube.com/watch?v=ClwBub6X6wg)
