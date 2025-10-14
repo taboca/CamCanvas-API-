@@ -1,120 +1,286 @@
-var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-window.requestAnimationFrame = requestAnimationFrame;
+/*
+ * WebcamFX (C-style doc, OO implementation)
+ * ------------------------------------------------------------
+ * PURPOSE
+ *   Draw webcam frames into <canvas> elements and apply per-pixel filters.
+ *
+ * USAGE
+ *   A) Zero-JS setup: add <canvas data-webcam-filter="emboss">...</canvas>
+ *      Options via data- attributes:
+ *        data-webcam-filter="normal|gray|inverse|red|emboss"
+ *        data-facing="user|environment"     (default: user)
+ *        data-mirror="true|false"           (default: true)
+ *
+ *   B) Programmatic:
+ *      const fx = new WebcamFX.WebcamFilterCanvas(canvas, { filter:"gray" });
+ *      await WebcamFX.ensureStream(); // optional—auto-called on first start
+ *      fx.start(); fx.setFilter("red"); fx.stop();
+ *
+ * COMPAT
+ *   - Modern Chromium/Firefox/Safari. Requires HTTPS or localhost.
+ *   - OffscreenCanvas used when available; falls back automatically.
+ */
 
-var v, canvas, gCtx, pixelOperationFunction=passEmboss;
-var backBuffer = document.createElement('canvas');
-var bCtx = backBuffer.getContext('2d');
+(function (global){
+  "use strict";
 
-function setFunction (fName) { 
-	pixelOperationFunction=fName;
-} 
+  // ---------- Utilities ----------
+  const rAF = window.requestAnimationFrame || function (fn){ return setTimeout(fn, 16); };
 
-function init() {
-  v = document.getElementById('v');
-  canvas = document.getElementById('c');
-  gCtx = canvas.getContext('2d');
-  navigator.webkitGetUserMedia({video:true}, callbackStreamIsReady);
-}
+  // ---------- Filters (C-style pure functions) ----------
+  const Filters = {
+    normal(w,h, bCtx, gCtx){
+      const pixels = bCtx.getImageData(0,0,w,h);
+      gCtx.putImageData(pixels, 0, 0);
+    },
+    gray(w,h, bCtx, gCtx){
+      const p = bCtx.getImageData(0,0,w,h);
+      const d = p.data;
+      for (let i=0; i<d.length; i+=4){
+        const avg = ((d[i] + d[i+1] + d[i+2]) / 3) | 0;
+        d[i] = d[i+1] = d[i+2] = avg; d[i+3] = 255;
+      }
+      gCtx.putImageData(p,0,0);
+    },
+    inverse(w,h, bCtx, gCtx){
+      const p = bCtx.getImageData(0,0,w,h);
+      const d = p.data;
+      for (let i=0; i<d.length; i+=4){
+        const avg = ((d[i] + d[i+1] + d[i+2]) / 3) | 0;
+        const inv = 255 - avg;
+        d[i] = d[i+1] = d[i+2] = inv; d[i+3] = 255;
+      }
+      gCtx.putImageData(p,0,0);
+    },
+    red(w,h, bCtx, gCtx){
+      const p = bCtx.getImageData(0,0,w,h);
+      const d = p.data;
+      for (let i=0; i<d.length; i+=4){
+        d[i+1] = 0; d[i+2] = 0; d[i+3] = 255; // keep R, zero G/B
+      }
+      gCtx.putImageData(p,0,0);
+    },
+    emboss(w,h, bCtx, gCtx){
+      // Emboss: write a blended inverted gray into the pixel 2-left (same row)
+      const p = bCtx.getImageData(0,0,w,h);
+      const d = p.data;
+      const stride = w * 4;
+      for (let y=0; y<h; y++){
+        const row = y * stride;
+        for (let x=0; x<w; x++){
+          const i = row + x*4;
+          const avg = ((d[i] + d[i+1] + d[i+2]) / 3) | 0;
+          const inv = 255 - avg;
+          if (x >= 2){
+            const j = i - 8; // 2 * 4 bytes
+            const mOld = ((d[j] + d[j+1] + d[j+2]) / 3) | 0;
+            const mNew = ((mOld + inv) / 2) | 0;
+            d[j] = d[j+1] = d[j+2] = mNew; d[j+3] = 255;
+          }
+        }
+      }
+      gCtx.putImageData(p,0,0);
+    }
+  };
 
-function callbackStreamIsReady(stream) {
-  v.src = URL.createObjectURL(stream);
-  v.play();
-  window.requestAnimationFrame(draw);
-}
+  // ---------- Stream Manager (singleton) ----------
+  const StreamManager = {
+    stream: null,
+    facingMode: "user",
+    video: null,
 
-function draw() {
-  var w = canvas.clientWidth;
-  var h = canvas.clientHeight;
-  backBuffer.width = w;
-  backBuffer.height = h;
-  bCtx.drawImage(v, 0, 0, w, h);
-  pixelOperationFunction(w,h);
-  window.requestAnimationFrame(draw);
-}
+    async ensureStream(opts={}){
+      // If already present, reuse
+      if (this.stream && this.video && !this._needsFacingChange(opts.facingMode)) {
+        return this.stream;
+      }
+      // Need (re)start with desired facingMode
+      this.facingMode = opts.facingMode || "user";
+      if (this.stream){
+        this._stopStream();
+      }
+      const constraints = { video: { facingMode: this.facingMode }, audio:false };
+      this.stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-function passInverse(w,h) { 
-   var pixels = bCtx.getImageData(0, 0, w, h);
-   var pixelData = pixels.data;
-   for (var i = 0; i < pixelData.length; i+=4) { 
-     //pixelData.data[i+0]=r;
-     var rr = pixelData[i+0];
-     var gg = pixelData[i+1];
-     var bb = pixelData[i+2];
-     var average = parseInt((rr+gg+bb)/3);
+      if (!this.video){
+        this.video = document.createElement("video");
+        this.video.playsInline = true;
+        this.video.muted = true;
+        this.video.style.display = "none";
+        document.body.appendChild(this.video);
+      }
+      this.video.srcObject = this.stream;
+      await this.video.play();
+      return this.stream;
+    },
 
-     var diffMedia = 255-average; 
-     average = diffMedia; 
+    _needsFacingChange(next){
+      return next && next !== this.facingMode;
+    },
 
-     pixelData[parseInt(i+0)]=average;
-     pixelData[parseInt(i+1)]=average;
-     pixelData[parseInt(i+2)]=average;
-     pixelData[parseInt(i+3)]=255;
-   } 
-   pixels.data = pixelData;
-   gCtx.putImageData(pixels, 0, 0);
-} 
+    _stopStream(){
+      try { this.stream.getTracks().forEach(t => t.stop()); } catch(e){}
+      this.stream = null;
+    },
 
-function passGray(w,h) { 
-   var pixels = bCtx.getImageData(0, 0, w, h);
-   var pixelData = pixels.data;
-   for (var i = 0; i < pixelData.length; i+=4) { 
-     //pixelData.data[i+0]=r;
-     var rr = pixelData[i+0];
-     var gg = pixelData[i+1];
-     var bb = pixelData[i+2];
+    getVideo(){
+      return this.video;
+    },
 
-     var average = parseInt((rr+gg+bb)/3);
-     pixelData[parseInt(i+0)]=average;
-     pixelData[parseInt(i+1)]=average;
-     pixelData[parseInt(i+2)]=average;
-     pixelData[parseInt(i+3)]=255;
-   } 
-   pixels.data = pixelData;
-   gCtx.putImageData(pixels, 0, 0);
-} 
+    getSize(){
+      const v = this.video;
+      const w = v?.videoWidth  || 640;
+      const h = v?.videoHeight || 480;
+      return { w, h };
+    }
+  };
 
-function passNormal(w,h) { 
-   var pixels = bCtx.getImageData(0, 0, w, h);
-   gCtx.putImageData(pixels, 0, 0);
-} 
-	
-function passRed(w,h) { 
-   var pixels = bCtx.getImageData(0, 0, w, h);
-   var pixelData = pixels.data;
-   for (var i = 0; i < pixelData.length; i+=4) { 
-     //pixelData.data[i+0]=r;
-     pixelData[parseInt(i+1)]=0;
-     pixelData[parseInt(i+2)]=0;
-     pixelData[parseInt(i+3)]=255;
-   } 
-   pixels.data = pixelData;
-   gCtx.putImageData(pixels, 0, 0);
-} 
-				
-function passEmboss(w,h) { 
-   var pixels = bCtx.getImageData(0, 0, w, h);
-   var pixelData = pixels.data;
-   for (var i = 0; i < pixelData.length; i+=4) { 
-     //pixelData.data[i+0]=r;
-     var rr = pixelData[i+0];
-     var gg = pixelData[i+1];
-     var bb = pixelData[i+2];
-     var average = parseInt((rr+gg+bb)/3);
-     if(i>7) { 
-       mOld = pixelData[i-8+0];
-       mOld = pixelData[i-8+1];
-       mOld = pixelData[i-8+2];
-       var diffMedia = 255-average; 
-       average = diffMedia; 
+  // ---------- Instance Class ----------
+  class WebcamFilterCanvas {
+    constructor(canvasEl, options = {}){
+      this.canvas = canvasEl;
+      this.ctx = canvasEl.getContext("2d", { willReadFrequently: true });
+      this.filter = (options.filter || "emboss").toLowerCase();
+      this.mirror = (String(options.mirror ?? "true").toLowerCase() === "true");
+      this.facingMode = (options.facingMode || "user");
+      this.running = false;
 
-       mNew = parseInt((mOld + average )/ 2);
+      // Backbuffer
+      if (typeof OffscreenCanvas !== "undefined"){
+        this.back = new OffscreenCanvas(this.canvas.width || 640, this.canvas.height || 480);
+      } else {
+        this.back = document.createElement("canvas");
+        this.back.width = this.canvas.width || 640;
+        this.back.height = this.canvas.height || 480;
+      }
+      this.bCtx = this.back.getContext("2d", { willReadFrequently: true });
+    }
 
-       pixelData[i-8+0]=mNew;
-       pixelData[i-8+1]=mNew;
-       pixelData[i-8+2]=mNew;
-     }
-   } 
-   pixels.data = pixelData;
-   gCtx.putImageData(pixels, 0, 0);
-} 
+    async start(){
+      await StreamManager.ensureStream({ facingMode: this.facingMode });
+      this._resizeToVideo();
+      this.running = true;
+      Loop.add(this);
+    }
 
+    stop(){
+      this.running = false;
+      Loop.remove(this);
+      // Note: stream is shared; we do not stop it here.
+    }
+
+    setFilter(name){
+      this.filter = (name || "normal").toLowerCase();
+    }
+
+    setMirror(on){
+      this.mirror = !!on;
+    }
+
+    setFacingMode(mode){
+      this.facingMode = mode === "environment" ? "environment" : "user";
+    }
+
+    _resizeToVideo(){
+      const { w, h } = StreamManager.getSize();
+      // Keep canvas's width/height attrs aligned with video aspect
+      if (!this.canvas.width || !this.canvas.height){
+        // If author defined only CSS size, we adopt the video size
+        this.canvas.width = w;
+        this.canvas.height = h;
+      }
+      this.back.width = this.canvas.width;
+      this.back.height = this.canvas.height;
+    }
+
+    // Called each frame by the Loop
+    draw(){
+      if (!this.running) return;
+
+      const video = StreamManager.getVideo();
+      if (!video || !video.videoWidth) return;
+
+      const w = this.canvas.width;
+      const h = this.canvas.height;
+
+      // Draw into backbuffer (optionally mirrored)
+      this.bCtx.save();
+      if (this.mirror){
+        this.bCtx.translate(w, 0);
+        this.bCtx.scale(-1, 1);
+      }
+      this.bCtx.drawImage(video, 0, 0, w, h);
+      this.bCtx.restore();
+
+      // Apply filter
+      const fn = Filters[this.filter] || Filters.normal;
+      fn(w, h, this.bCtx, this.ctx);
+    }
+  }
+
+  // ---------- Global Draw Loop ----------
+  const Loop = {
+    list: new Set(),
+    ticking: false,
+
+    add(instance){
+      this.list.add(instance);
+      if (!this.ticking){
+        this.ticking = true;
+        this.tick();
+      }
+    },
+    remove(instance){
+      this.list.delete(instance);
+      if (this.list.size === 0){
+        this.ticking = false;
+      }
+    },
+    tick(){
+      if (!this.ticking) return;
+      this.list.forEach(inst => inst.draw());
+      rAF(()=> this.tick());
+    }
+  };
+
+  // ---------- Auto-init on canvases with data attributes ----------
+  async function autoInit(){
+    const nodes = document.querySelectorAll('canvas[data-webcam-filter]');
+    if (!nodes.length) return;
+
+    // Ensure stream once with best facingMode among nodes (prefer "user" default)
+    const firstFacing = [...nodes].map(n => (n.getAttribute('data-facing') || 'user')).find(Boolean) || 'user';
+    await StreamManager.ensureStream({ facingMode: firstFacing });
+
+    nodes.forEach(node => {
+      const opts = {
+        filter: node.getAttribute('data-webcam-filter') || 'emboss',
+        facingMode: node.getAttribute('data-facing') || 'user',
+        mirror: node.getAttribute('data-mirror') ?? 'true',
+      };
+      const inst = new WebcamFilterCanvas(node, opts);
+      inst.start();
+      // Store handle if needed later
+      node._webcamFX = inst;
+    });
+  }
+
+  // Expose API
+  const WebcamFX = {
+    WebcamFilterCanvas,
+    Filters,
+    ensureStream: (opts)=> StreamManager.ensureStream(opts),
+    stopSharedStream: ()=> StreamManager._stopStream(),
+    _streamManager: StreamManager, // for advanced users
+  };
+
+  global.WebcamFX = WebcamFX;
+
+  // Auto-run when DOM is ready
+  if (document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", autoInit, { once:true });
+  } else {
+    autoInit();
+  }
+
+})(window);
