@@ -1,4 +1,7 @@
-# Webcam to Canvas with JavaScript (HTML5)
+# Fun Evangelist Season - Webcam to Canvas with JavaScript - Episode 20
+
+* [Video demo](https://www.mgalli.com/a/2025-10-14-demos-e10_manipulating_a_webcam_from_the_web)
+* [Fun Evangelist Season](https://www.mgalli.com/s/evangelistcast)
 
 ## [EvangelistCast Season Episode 020 video - Web Cam and JavaScript Canvas](https://www.youtube.com/watch?v=ClwBub6X6wg)
 
