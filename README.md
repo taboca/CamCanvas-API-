@@ -3,11 +3,6 @@
 * [Video demo](https://www.mgalli.com/a/2025-10-14-demos-e10_manipulating_a_webcam_from_the_web)
 * [Fun Evangelist Season](https://www.mgalli.com/s/evangelistcast)
 
-## [EvangelistCast Season Episode 020 video - Web Cam and JavaScript Canvas](https://www.youtube.com/watch?v=ClwBub6X6wg)
-
-* Evangelist [Marcio S. Galli](https://www.mgalli.com)
-* Video demo [Site Labs Season - Episode 020 - Cam Canvas](https://www.youtube.com/watch?v=ClwBub6X6wg)
-
 ## Introduction 
 
 In the early days of browser development, capturing live video and bringing it into the browser required Flash. Back then, this project — *CamCanvas* — offered JavaScript interoperability through a small Flash bridge, allowing developers to grab webcam frames and paint them on a `<canvas>` element for real-time processing.
